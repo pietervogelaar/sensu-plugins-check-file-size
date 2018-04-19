@@ -1,0 +1,88 @@
+#!/bin/bash
+#
+#  check-file-size
+#
+# DESCRIPTION:
+#   Sensu plugin that checks the minimum and/or maximum file size
+#
+# PLATFORMS:
+#   Linux
+#
+# LICENSE:
+#   Copyright 2018 Pieter Vogelaar
+#   Released under the same terms as Sensu (the MIT license); see LICENSE
+#   for details.
+#
+
+while test -n "$1"; do
+    case "$1" in
+        -W)
+            warning_under=$2
+            shift
+            ;;
+        -C)
+            critical_under=$2
+            shift
+            ;;
+        -w)
+            warning_over=$2
+            shift
+            ;;
+        -c)
+            critical_over=$2
+            shift
+            ;;
+        -f)
+            file=$2
+            shift
+            ;;
+        -h)
+            help=1
+            shift
+            ;;
+        *)
+            echo "Unknown argument: $1"
+            exit 3
+            ;;
+    esac
+    shift
+done
+
+if [ ! -z $help ] && [ "$help" -gt "0" ]; then
+    echo 'Usage: check-file-size (options)'
+    echo '    -f, File to check'
+    echo '    -C, Critical if smaller than value (bytes)'
+    echo '    -W, Warning if smaller than value (bytes)'
+    echo '    -c, Critical if larger than value (bytes)'
+    echo '    -w, Warning if larger than value (bytes)'
+    exit 0
+fi
+
+# Check if file is specified and exists
+if [ -z $file ]; then
+    echo '-f parameter is required'
+    exit 2
+elif [ ! -f $file ]; then
+    echo "File $file not found"
+    exit 2
+fi
+
+file_data=($(ls -ln $file))
+file_size=${file_data[4]}
+
+if [ ! -z $critical_under ] && [ "$file_size" -lt "$critical_under" ]; then
+    echo "CRITICAL - The file size $file_size bytes is too small"
+    exit 2
+elif [ ! -z $critical_over ] && [ "$file_size" -gt "$critical_over" ]; then
+    echo "CRITICAL - The file size $file_size bytes is too large"
+    exit 2
+elif [ ! -z $warning_under ] && [ "$file_size" -lt "$warning_under" ]; then
+    echo "WARNING - The file size $file_size bytes is too small"
+    exit 2
+elif [ ! -z $warning_over ] && [ "$file_size" -gt "$warning_over" ]; then
+    echo "WARNING - The file size $file_size bytes is too large"
+    exit 2
+else
+    echo "OK - The file size is $file_size bytes"
+    exit 0
+fi
