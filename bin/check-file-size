@@ -16,6 +16,10 @@
 
 while test -n "$1"; do
     case "$1" in
+        -f)
+            file=$2
+            shift
+            ;;
         -W)
             warning_under=$2
             shift
@@ -30,10 +34,6 @@ while test -n "$1"; do
             ;;
         -c)
             critical_over=$2
-            shift
-            ;;
-        -f)
-            file=$2
             shift
             ;;
         -h)
